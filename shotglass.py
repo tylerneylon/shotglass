@@ -95,6 +95,10 @@ def _route_path(method, path, data=None, **kwargs):
             continue
         fn = route[1]
         accepted_keywords = route[2] if len(route) >= 3 else []
+        # Security: This filter is particularly critical for static file
+        # serving. If this filter were not here, a malicious request could
+        # provide the "path" keyword and cause us to load a file meant to be
+        # kept private. (This can't happen with the current code.)
         kwargs = { k:v for k, v in kwargs.items() if k in accepted_keywords }
         if method == 'POST':
             return fn(*args, data, **kwargs)
@@ -102,6 +106,26 @@ def _route_path(method, path, data=None, **kwargs):
             return fn(*args, **kwargs)
 
     return BAD_PATH
+
+def _guess_content_type(path):
+    # This page was helpful in forming this list:
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+    known_types = {
+            'js'  : 'text/javascript',
+            'txt' : 'text/plain',
+            'jpg' : 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'gif' : 'image/gif',
+            'htm' : 'text/html',
+            'html': 'text/html',
+            'ico' : 'image/vnd.microsoft.icon',
+            'json': 'application/json',
+            'png' : 'image/png',
+            'pdf' : 'application/pdf',
+            'svg' : 'image/svg+xml'
+    }
+    ext = path.split('.')[-1]
+    return known_types.get(ext, 'text/plain')
 
 def parse_data(data):
     return json.loads(data)
@@ -157,6 +181,9 @@ class ShotGlassHandler(http.server.BaseHTTPRequestHandler):
 
         if type(response) is bytes:
             content_type = 'text/html'
+        elif type(response) is dict:
+            content_type = response['content_type']
+            response = response['content']
         else:
             content_type = 'application/json'
             response = json.dumps(response).encode('utf-8') + b'\n'
@@ -195,6 +222,30 @@ def register_routes(GET_routes, POST_routes):
         'GET':  sorted(GET_routes,  key=lambda x: len(x[0]), reverse=True),
         'POST': sorted(POST_routes, key=lambda x: len(x[0]), reverse=True)
     }
+
+def add_static_paths(paths):
+    """ This expects `paths` to be an iterable that returns path strings. These
+        paths will be served as static files on routes that are the same as the
+        path strings. In particular, a glob is an acceptable input.
+
+        Currently, each path is expected to specify a file, although in the
+        future I'd like to support providing a directory instead (in which case
+        all the files recursively under that directory would be served as static
+        files).
+    """
+    new_routes = all_routes.get('GET', [])
+    for path in paths:
+        def handle_path(url_path=None, path=path):
+            content_type = _guess_content_type(path)
+            with open(path, 'rb') as f:
+                return {'content_type': content_type, 'content': f.read()}
+        route = path if path.startswith('/') else f'/{path}'
+        new_routes.append([route, handle_path, 'url_path'])
+    all_routes['GET'] = sorted(
+            new_routes,
+            key=lambda x: len(x[0]),
+            reverse=True
+    )
 
 def run_server(exit_on_error=False, checkpoint_interval=None):
 
