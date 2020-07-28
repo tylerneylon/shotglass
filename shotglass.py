@@ -181,9 +181,9 @@ class ShotGlassHandler(http.server.BaseHTTPRequestHandler):
 
         if type(response) is bytes:
             content_type = 'text/html'
-        elif type(response) is dict:
-            content_type = response['content_type']
-            response = response['content']
+        elif type(response) is tuple:
+            content_type = response[0]
+            response = response[1]
         else:
             content_type = 'application/json'
             response = json.dumps(response).encode('utf-8') + b'\n'
@@ -238,7 +238,7 @@ def add_static_paths(paths):
         def handle_path(url_path=None, path=path):
             content_type = _guess_content_type(path)
             with open(path, 'rb') as f:
-                return {'content_type': content_type, 'content': f.read()}
+                return (content_type, f.read())
         route = path if path.startswith('/') else f'/{path}'
         new_routes.append([route, handle_path, 'url_path'])
     all_routes['GET'] = sorted(
