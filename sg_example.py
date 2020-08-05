@@ -47,6 +47,9 @@ if __name__ == '__main__':
     POST_routes = [
     ]
 
+    # Uncomment the next line to require basic authentication.
+    # shotglass.set_basic_auth(True, 'user', 'pass')
+
     shotglass.register_routes(GET_routes, POST_routes)
 
     shotglass.run_server()

@@ -28,6 +28,7 @@
 # _______________________________________________________________________
 # Imports
 
+import base64
 import http.server
 import json
 import os
@@ -52,6 +53,11 @@ VERSION = '0.0.0'
 
 # This is a sentinal return object to identify when routing has failed.
 BAD_PATH = {}
+
+# Variables used by our request handler.
+all_routes = {}
+do_use_auth = False
+usr, pwd = None, None
 
 is_debug_mode = False
 
@@ -151,6 +157,38 @@ class ShotGlassHandler(http.server.BaseHTTPRequestHandler):
     # ______________________________________________________________________
     # Utility methods.
 
+    def _did_pass_security_check(self):
+        """ This should be called before any other headers or response is
+            initiated. This adds support for basic security. Note that this
+            security method is weak without the additional presence of a secure
+            transport layer (eg using HTTPS, not HTTP) because the password is
+            sent unencrypted (unless HTTPS encrypts it for you).
+
+            This returns True iff the request should continue.
+        """
+
+        # If security is turned off, skip the rest of this function.
+        if not do_use_auth:
+            return True  # True = accept request.
+
+        # Check to see if they've already sent in a good usr/pwd.
+        auth_str = self.headers.get('Authorization', None)
+        usr_, pwd_ = None, None
+        if auth_str and auth_str.startswith('Basic '):
+            usrpwd = base64.b64decode(auth_str[6:]).decode('utf-8')
+            usr_, pwd_ = usrpwd.split(':', 1)
+        if (usr_ and pwd_) and (usr_ == usr) and (pwd_ == pwd):
+            return True
+
+        # At this point, security is on, and they have not yet been verified.
+        self.send_response(401)
+        self.send_header(
+                'WWW-Authenticate',
+                'Basic'
+        )
+        self.end_headers()
+        return False
+
     def _init_response(self, content_type):
         """ This is meant as a high-level general setup for both HEAD and GET
             requests. """
@@ -162,9 +200,13 @@ class ShotGlassHandler(http.server.BaseHTTPRequestHandler):
     # HTTP method handlers.
 
     def do_HEAD(self):
-        self._init_response()
+        if self._did_pass_security_check():
+            self._init_response()
 
     def _do_COMMON(self, method, data=None):
+
+        if not self._did_pass_security_check():
+            return
 
         parsed = urlparse(self.path)
         kwargs = dict(parse_qsl(parsed.query))
@@ -193,8 +235,8 @@ class ShotGlassHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(response)
 
     def do_GET(self):
-
         debug_print('GET Request:', self.path)
+        debug_print(self.headers)
         self._do_COMMON('GET')
 
     def do_POST(self):
@@ -214,6 +256,22 @@ class ShotGlassHandler(http.server.BaseHTTPRequestHandler):
 
 # _______________________________________________________________________
 # Public functions
+
+def set_basic_auth(do_use_auth_, usr_=None, pwd_=None):
+    """ Turn on or off basic authentication. This is off by default. When it's
+        on, the client will receive a 401 status unless they have already
+        successfully entered a username and password. This is not a beautiful
+        interface, and is generally not what you want for a nice site. It might
+        be what you want for a useful-but-not-necessarily-beautiful site. Also
+        note that this is only strong when it is combined with HTTPS (not HTTP).
+    """
+
+    global do_use_auth, usr, pwd
+
+    # If auth is turned on, then we must also be provided a usr_ and pwd_.
+    assert (not do_use_auth_) or (usr_ and pwd_)
+
+    do_use_auth, usr, pwd = do_use_auth_, usr_, pwd_
 
 def register_routes(GET_routes, POST_routes):
 
