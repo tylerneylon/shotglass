@@ -1,4 +1,5 @@
 # shotglass
+v0.1.0
 
 A tiny Python library to build servers.
 

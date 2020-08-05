@@ -49,7 +49,7 @@ DEBUG_PORT = 8080
 port = PRODUCTION_PORT  # This is changed to DEBUG_PORT in debug mode.
 
 # Shotglass uses semantic versioning 2.0.0: https://semver.org/
-VERSION = '0.0.0'
+VERSION = '0.1.0'
 
 # This is a sentinal return object to identify when routing has failed.
 BAD_PATH = {}
