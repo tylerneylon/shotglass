@@ -224,6 +224,9 @@ class ShotGlassHandler(http.server.BaseHTTPRequestHandler):
 
         if type(response) is bytes:
             content_type = 'text/html'
+        elif type(response) is str:
+            content_type = 'text/html'
+            response = response.encode('utf-8')
         elif type(response) is tuple:
             content_type = response[0]
             response = response[1]
