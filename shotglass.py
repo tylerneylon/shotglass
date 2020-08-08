@@ -54,6 +54,9 @@ VERSION = '0.1.0'
 # This is a sentinal return object to identify when routing has failed.
 BAD_PATH = {}
 
+# This is a sentinal object to indicate a handler wants all query keywords.
+FULL_QUERY = {}
+
 # Variables used by our request handler.
 all_routes = {}
 do_use_auth = False
@@ -105,7 +108,11 @@ def _route_path(method, path, data=None, **kwargs):
         # serving. If this filter were not here, a malicious request could
         # provide the "path" keyword and cause us to load a file meant to be
         # kept private. (This can't happen with the current code.)
-        kwargs = { k:v for k, v in kwargs.items() if k in accepted_keywords }
+        kwargs = {
+                k:v
+                for k, v in kwargs.items()
+                if accepted_keywords == FULL_QUERY or k in accepted_keywords
+        }
         if method == 'POST':
             return fn(*args, data, **kwargs)
         if method == 'GET':
