@@ -310,6 +310,9 @@ def add_static_paths(paths):
                 return (content_type, f.read())
         route = path if path.startswith('/') else f'/{path}'
         new_routes.append([route, handle_path, 'url_path'])
+        # Do extra work for `index.html` as a special case.
+        if path == 'index.html':
+            new_routes.append(['/', handle_path, 'url_path'])
     all_routes['GET'] = sorted(
             new_routes,
             key=lambda x: len(x[0]),
