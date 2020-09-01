@@ -125,6 +125,7 @@ def _guess_content_type(path):
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
     known_types = {
             'js'  : 'text/javascript',
+            'mjs' : 'text/javascript',
             'css' : 'text/css',
             'txt' : 'text/plain',
             'jpg' : 'image/jpeg',
