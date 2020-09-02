@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 """ sg_example.py
 
-    This file illustrates a simple exmple of building a server with shotglass.
+    This file illustrates a simple example of building a server with shotglass.
 
     Run this as:
 
-        ./sg_example          # to serve on port 80; or
-        ./sg_example --debug  # to serve on port 8080, with more verbose output.
+        ./sg_example.py          # to serve on port 80; or
+        ./sg_example.py --debug  # to serve on port 8080, with verbose output.
 
     See the docstring in shotglass.py for more details.
 """
