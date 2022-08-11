@@ -288,10 +288,17 @@ def register_routes(GET_routes, POST_routes):
 
     global all_routes
 
-    all_routes = {
-        'GET':  sorted(GET_routes,  key=lambda x: len(x[0]), reverse=True),
-        'POST': sorted(POST_routes, key=lambda x: len(x[0]), reverse=True)
-    }
+    all_routes['GET'] = sorted(
+            GET_routes + all_routes.get('GET', []),
+            key = lambda x: len(x[0]),
+            reverse = True
+    )
+
+    all_routes['POST'] = sorted(
+            POST_routes + all_routes.get('POST', []),
+            key = lambda x: len(x[0]),
+            reverse = True
+    )
 
 def add_static_paths(paths):
     """ This expects `paths` to be an iterable that returns path strings. These
