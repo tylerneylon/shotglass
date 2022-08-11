@@ -11,7 +11,7 @@ The general usage of shotglass is to register routes by calling
 
 A single route is given as a list like this:
 
-    `[<string for the route>, <python handler fn>, <optional keywords>]`
+    [<string for the route>, <python handler fn>, <optional keywords>]
 
 eg, `<string for the route> = /my/$var_a$/path/`
 When variables are in a route, they become the first parameters handed to
@@ -22,6 +22,8 @@ through url query values whose key is an element of this list. Those values
 are given to the handler function as Python keywords in the function's
 arguments.
 
+### Simple Security
+
 As a simple security step, you can enable basic authentication by calling the
 `set_basic_auth()` function before running your server. This function is used
 like so:
@@ -29,6 +31,8 @@ like so:
     import shotglass
     # ...
     shotglass.set_basic_auth(True, 'user', 'pass')
+
+### Ports
 
 The default port is 80. If you'd like, you can programmatically override this
 port to be whatever you like, as such:
