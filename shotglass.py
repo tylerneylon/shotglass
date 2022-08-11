@@ -320,9 +320,16 @@ def add_static_paths(paths):
             reverse=True
     )
 
-def run_server(exit_on_error=False, checkpoint_interval=None):
+def run_server(
+        exit_on_error=False,
+        checkpoint_interval=None,
+        default_port=None
+    ):
 
-    global server
+    global port, server
+
+    if default_port is not None:
+        port = default_port
 
     if len(sys.argv) > 1 and sys.argv[1] == '--debug':
         enter_debug_mode()

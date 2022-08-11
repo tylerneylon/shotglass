@@ -1,5 +1,5 @@
 # shotglass
-v0.1.0
+v0.1.1
 
 A tiny Python library to build servers.
 
@@ -21,6 +21,26 @@ The `<optional keywords>` element is a list of strings. Shotglass passes
 through url query values whose key is an element of this list. Those values
 are given to the handler function as Python keywords in the function's
 arguments.
+
+As a simple security step, you can enable basic authentication by calling the
+`set_basic_auth()` function before running your server. This function is used
+like so:
+
+    import shotglass
+    # ...
+    shotglass.set_basic_auth(True, 'user', 'pass')
+
+The default port is 80. If you'd like, you can programmatically override this
+port to be whatever you like, as such:
+
+    shotglass.run_server(default_port=MY_PORT)
+
+With or without that optional parameter, if the command-line flag `--debug` is
+detected, then the port is switched to 8080, and additional debug output is sent
+to stdout. The reason for switching to port 8080 is that high port numbers (such
+as 8080) can be more easily bound on some systems (so you can develop your
+server without needing administrative permissions), and this makes it easier for
+you to simultaneously run two versions of your server code on one machine.
 
 ## Example
 
