@@ -22,6 +22,24 @@ through url query values whose key is an element of this list. Those values
 are given to the handler function as Python keywords in the function's
 arguments.
 
+### Static Files
+
+You can directly serve disk-based files by using the function:
+
+    shotglass.add_static_paths(paths)
+
+where `paths` is any iterable that returns file paths. Those specific paths are
+memorized when you call `add_static_paths()`, and are available via urls that
+have the same directory structure as you have on disk. Note that this is a
+`glob`-friendly way to serve files; an example:
+
+    from glob import glob
+    # ...
+    shotglass.add_static_paths(glob('img/*.png'))
+
+This will cause every `png` file in your `img` directory, such as `myfile.png`,
+to be served at the corresponding url path, such as `/img/myfile.png`.
+
 ### Simple Security
 
 As a simple security step, you can enable basic authentication by calling the
