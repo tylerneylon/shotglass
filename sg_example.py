@@ -44,6 +44,10 @@ if __name__ == '__main__':
             # ['/a/$b$/c', my_handler_fn, ['optional_keyword']]
     ]
 
+    # A POST handler fn is called as fn(*args, data, **kwargs), where `args` are
+    # matched path parts (such as `b` from "/a/$b$/c"), data is the POST string,
+    # decoded from utf-8, and kwargs are query values from the url that match
+    # the optional keyword list.
     POST_routes = [
     ]
 
