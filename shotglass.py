@@ -345,7 +345,7 @@ def run_server(
     print(f'*** {mode_name} mode ***')
 
     # Initiate the local HTTP server.
-    server = socketserver.TCPServer(
+    server = socketserver.ThreadingTCPServer(
             ('', port),
             ShotGlassHandler,
             False  # Delay binding to allow addr re-use.
