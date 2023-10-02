@@ -35,6 +35,7 @@ import os
 import socketserver
 import sys
 import threading
+from collections.abc import Iterable
 from urllib.parse import parse_qsl, unquote, urlparse
 
 import sg_debug
@@ -197,11 +198,13 @@ class ShotGlassHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         return False
 
-    def _init_response(self, content_type):
+    def _init_response(self, content_type, is_streaming=False):
         """ This is meant as a high-level general setup for both HEAD and GET
             requests. """
         self.send_response(200)
         self.send_header('Content-Type', content_type)
+        if is_streaming:
+            self.send_header('Transfer-Encoding', 'chunked')
         self.end_headers()
 
     # ______________________________________________________________________
@@ -230,6 +233,7 @@ class ShotGlassHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(404, message='Unsupported path: %s' % path)
             return
 
+        is_streaming = False
         if type(response) is bytes:
             content_type = 'text/html'
         elif type(response) is str:
@@ -238,12 +242,23 @@ class ShotGlassHandler(http.server.BaseHTTPRequestHandler):
         elif type(response) is tuple:
             content_type = response[0]
             response = response[1]
-        else:
+        elif type(response) in [list, dict]:
             content_type = 'application/json'
             response = json.dumps(response).encode('utf-8') + b'\n'
+        elif isinstance(response, Iterable):
+            content_type = 'text/plain'
+            is_streaming = True
+        else:
+            print('Error: I don\'t know how to handle internal response:')
+            print(response)
+            self.send_response(500)
 
-        self._init_response(content_type)
-        self.wfile.write(response)
+        self._init_response(content_type, is_streaming=is_streaming)
+        if is_streaming:
+            for chunk in response:
+                self.wfile.write(chunk.encode('utf-8'))
+        else:
+            self.wfile.write(response)
 
     def do_GET(self):
         debug_print('GET Request:', self.path)

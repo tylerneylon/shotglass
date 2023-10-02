@@ -1,5 +1,5 @@
 # shotglass
-v0.1.1
+v0.1.2
 
 A tiny Python library to build servers.
 
@@ -124,3 +124,19 @@ if __name__ == '__main__':
     shotglass.run_server()
 ```
 
+## Streaming output
+
+Your response to a request can be sent in a continuous stream
+of small chunks. To do this, simply return an iterator from
+your handler function. A simple example is below.
+
+```
+# Use this as you would any other handler (see above).
+# By using a `yield` statement, the return value is a
+# generator, and the response automatically streams out
+# with the MIME type "text/plain". Each `chunk` value
+# is expected to be a string, and is utf-8 encoded.
+def get_streaming_contents():
+    for chunk in my_chunks:
+        yield chunk
+```
